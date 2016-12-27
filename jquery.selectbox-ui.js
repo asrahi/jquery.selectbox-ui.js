@@ -1,10 +1,10 @@
 /*
- * jQuery Selectbox plugin 1.0
+ * jQuery Selectbox UI plugin
  *
- * Copyright, ASRAHI (http://asrahi.me)
- * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php) license.
- *
- * Date: 2016-03-17
+ * @author ASRAHI (http://asrahi.me)
+ * @license MIT
+ * @date 2016-03-17
+ * @version 1.2 객체 셀럭터 수정, 접근성을 위한 tabindex추가
  */
 (function($){
 	var default_option = {
@@ -15,7 +15,8 @@
 		onOpen: null,
 		onClose: null,
 		link: false,
-		outClick: true
+		outClickClose: true,
+		otherClickClose: true
 	}
 
 	var public = {
@@ -25,42 +26,53 @@
 			$.extend(opt, default_option, options);
 
 			//wraping
-			var $this = $(this).wrap('<div class="selectbox-ui-wrap"></div>');
+			var $this = $(this).addClass('selectbox-ui').wrap('<div class="selectbox-ui-wrap"></div>');
 			var $wrap = $this.parent();
-			var $first = $this.find('li:first');
-			var $option = $this.find('li');
+			var $first = $this.children().first();
+			var $option = $this.children().attr('tabindex','0');
 
 			$this.hide();
 			if( $this.data('label') ){
 				$wrap.prepend( '<button type="button" class="selectbox-ui-btn">'+$this.data('label')+'</button>' );
+				$wrap.append('<input type="hidden" class="selectbox-ui-val" value=""/>');
 			} else {
-				$wrap.prepend( '<button type="button" class="selectbox-ui-btn">'+$first.html()+'</button>' );
+				$wrap.prepend( '<button type="button" class="selectbox-ui-btn">'+$first.html()+'</button>');
+				$wrap.append('<input type="hidden" class="selectbox-ui-val" value="'+$first.data('value')+'/>');
+				$this.data('value', $first.data('value'));
 			}
-			$wrap.prepend('<input type="hidden" class="selectbox-ui-val" value="'+$first.data('value')+'/>');
+			
+
 			var $btn = $wrap.find('.selectbox-ui-btn');
 
-			$btn.click(function(){
+			$btn.click(function(e){
+				if( opt.otherClickClose ){
+					$('.selectbox-ui').not($this).slideUp(opt.speed).parent().removeClass('open');
+				}
 				$wrap.toggleClass('open');
-				$this.slideToggle(opt.speed,function(){
-					if( typeof opt.onOpen == 'function' ){ if( $(this).is('.open') ) opt.onOpen.apply(this,e); }
-					if( typeof opt.onClose == 'function' ){ if( $(this).is(':not(.open)') ) opt.onOpen.apply(this,e); }
+				$this.stop().slideToggle(opt.speed,function(){
+					if( typeof opt.onOpen == 'function' ){ if( $(this).is('.open') ) opt.onOpen.apply(this,arguments); }
+					if( typeof opt.onClose == 'function' ){ if( $(this).is(':not(.open)') ) opt.onOpen.apply(this,arguments); }
 				});
 				return false;
 			});
 			$option.click(function(e){
-				$btn.html( $(this).html() );
-				if( typeof opt.onChange == 'function' ) opt.onChange.apply(this,e);
+				if( $this.data('value') != $(this).data('value') ){
+					$btn.html( $(this).html() );
+					$this.data('value', $(this).data('value') );
+					if( typeof opt.onChange == 'function' ) opt.onChange.apply(this,arguments);
+				}
 				$btn.trigger('click');
 				if(!opt.link) return false;
 			});
 
-			if(opt.outClick){
+			if(opt.outClickClose){
 				$(document).on('click','body',function(e){
 					if( !$this.has( e.target ).length ){
-						$this.slideUp(opt.speed,function(){
-							if( typeof opt.onOpen == 'function' ){ if( $(this).is('.open') ) opt.onOpen.apply(this,e); }
-							if( typeof opt.onClose == 'function' ){ if( $(this).is(':not(.open)') ) opt.onOpen.apply(this,e); }
+						$this.stop().slideUp(opt.speed,function(){
+							if( typeof opt.onOpen == 'function' ){ if( $(this).is('.open') ) opt.onOpen.apply(this,arguments); }
+							if( typeof opt.onClose == 'function' ){ if( $(this).is(':not(.open)') ) opt.onOpen.apply(this,arguments); }
 						});
+						$wrap.removeClass('open');
 					}
 				});
 			}
