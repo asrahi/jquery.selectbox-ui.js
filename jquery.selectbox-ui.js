@@ -5,6 +5,7 @@
  * @license MIT
  * @date 2016-03-17
  * @version 1.2 객체 셀럭터 수정, 접근성을 위한 tabindex추가
+ * @version
  */
 (function($){
 	var default_option = {
@@ -40,7 +41,7 @@
 				$wrap.append('<input type="hidden" class="selectbox-ui-val" value="'+$first.data('value')+'/>');
 				$this.data('value', $first.data('value'));
 			}
-			
+
 
 			var $btn = $wrap.find('.selectbox-ui-btn');
 
